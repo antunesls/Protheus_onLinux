@@ -12,6 +12,38 @@ find_latest_file() {
     find "$SOURCE_FOLDER" -type f -name "$pattern" | sort | tail -n 1
 }
 
+# Function to find the latest .RPO file
+find_latest_rpo() {
+    find "$SOURCE_FOLDER" -type f -name "*REPOSITORIO_DE_OBJETOS_BRASIL*.RPO" | sort | tail -n 1
+}
+
+# List of required files
+REQUIRED_FILES=(
+    "*DICIONARIOS_COMPL*.ZIP"
+    "*HELPS_COMPL*.ZIP"
+    "*MENUS*.ZIP"
+    "*DBACCESS_LINUX_X64*.TAR.GZ"
+    "*APPSERVER_BUILD*.TAR.GZ"
+    "*REPOSITORIO_DE_OBJETOS_BRASIL*.RPO"
+    "appserver_appbroker.ini"
+    "appserver_appsec01.ini"
+    "appserver_appsec02.ini"
+    "dbaccess.ini"
+    "totvsappbroker"
+    "totvsappsec01"
+    "totvsappsec02"
+    "totvsdbaccess"
+    "totvslicensesrv"
+)
+
+# Check if all required files are present
+for FILE_PATTERN in "${REQUIRED_FILES[@]}"; do
+    if ! find "$SOURCE_FOLDER" -type f -name "$FILE_PATTERN" | grep -q .; then
+        echo "Error: Required file matching pattern '$FILE_PATTERN' not found in $SOURCE_FOLDER"
+        exit 1
+    fi
+done
+
 # Descompactar dicionários de dados
 unzip "$(find_latest_file '*DICIONARIOS_COMPL*.ZIP')" -d "$BASE_DIR/protheus_data/systemload/"
 
@@ -28,7 +60,7 @@ tar -xvf "$(find_latest_file '*DBACCESS_LINUX_X64*.TAR.GZ')" -C "$BASE_DIR/proth
 tar -xvf "$(find_latest_file '*APPSERVER_BUILD*.TAR.GZ')" -C "$BASE_DIR/microsiga/protheus/bin/applocksrv"
 
 # Mover repositório
-mv /tmp/arqprotheus25/19-07-04_REPOSITORIO_DE_OBJETOS_BRASIL_12_1_25_TTTP120.RPO "$BASE_DIR/protheus/rpo/tttp120.rpo"
+mv "$(find_latest_rpo)" "$BASE_DIR/protheus/rpo/tttp120.rpo"
 
 # Copiar arquivos para serviços de Broker e Secundários
 cp -rf "$BASE_DIR/microsiga/protheus/bin/applocksrv/*" "$BASE_DIR/protheus/bin/appbroker/"
